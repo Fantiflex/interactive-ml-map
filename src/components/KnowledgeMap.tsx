@@ -8,6 +8,10 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
+type KnowledgeMapProps = {
+  onSelectConcept: (id: string) => void;
+};
+
 const nodes: Node[] = [
   {
     id: "ml",
@@ -39,10 +43,17 @@ const edges: Edge[] = [
   },
 ];
 
-export default function KnowledgeMap() {
+export default function KnowledgeMap({
+  onSelectConcept,
+}: KnowledgeMapProps) {
   return (
     <div className="w-full h-full">
-      <ReactFlow nodes={nodes} edges={edges} fitView>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        fitView
+        onNodeClick={(_, node) => onSelectConcept(node.id)}
+      >
         <Background />
         <Controls />
       </ReactFlow>
