@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import AdamVisualization from "./animations/AdamVisualization";
 import { concepts } from "../data/concepts";
 import MomentumAnimation from "./animations/MomentumAnimation";
+import AdaptiveScalingDemo from "./animations/AdaptiveScalingDemo";
 
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
@@ -116,9 +117,17 @@ export default function ConceptPanel({
         <p className="text-sm leading-relaxed text-neutral-600">
           {concept.intuition}
         </p>
+
+        {selectedConcept === "adaptive_scaling" && (
+          <section className="mb-6">
+            <AdaptiveScalingDemo />
+          </section>
+        )}
       </section>
 
-            {concept.updates && concept.updates.length > 0 && (
+            {selectedConcept !== "adaptive_scaling" &&
+              concept.updates &&
+              concept.updates.length > 0 && (
               <section className="mb-6">
                 <h3 className="mb-3 text-sm font-semibold text-neutral-900">
                   Update rule
