@@ -29,4 +29,44 @@ export const concepts: Record<string, Concept> = {
     intuition:
       "A model should not only fit the training set, but also work well on new examples.",
   },
+
+  gd: {
+    title: "Gradient Descent",
+    category: "Optimization",
+    short: "Move parameters in the opposite direction of the gradient.",
+    intuition:
+      "Gradient descent uses the full dataset to compute a direction that reduces the loss.",
+  },
+
+  sgd: {
+    title: "SGD",
+    category: "Optimization",
+    short: "Estimate the gradient using a mini-batch.",
+    intuition:
+      "Instead of computing the gradient over the full dataset, SGD uses a smaller random batch, making updates cheaper but noisier.",
+  },
+
+  momentum: {
+    title: "Momentum",
+    category: "Optimization",
+    short: "Gradient descent with inertia.",
+    intuition:
+      "Momentum keeps memory of previous update directions, which can reduce oscillation and accelerate movement in consistent directions.",
+  },
+
+  rmsprop: {
+    title: "RMSProp",
+    category: "Optimization",
+    short: "Adapt the step size using recent squared gradients.",
+    intuition:
+      "RMSProp rescales updates coordinate-wise using a moving average of squared gradients.",
+  },
+
+  adam: {
+    title: "Adam",
+    category: "Optimization",
+    short: "Combine momentum and adaptive scaling.",
+    intuition:
+      "Adam combines a moving average of gradients with a moving average of squared gradients.",
+  },
 };
