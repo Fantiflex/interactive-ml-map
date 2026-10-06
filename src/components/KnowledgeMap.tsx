@@ -3,30 +3,54 @@ import {
   Controls,
   ReactFlow,
   type Edge,
-  type Node,
+  type NodeTypes,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
+
+import ConceptNode, {
+  type ConceptNodeType,
+} from "./ConceptNode";
+
 
 type KnowledgeMapProps = {
   onSelectConcept: (id: string) => void;
 };
 
-const nodes: Node[] = [
+const nodeTypes: NodeTypes = {
+  concept: ConceptNode,
+};
+
+const nodes: ConceptNodeType[] = [
   {
     id: "ml",
-    position: { x: 350, y: 50 },
-    data: { label: "Machine Learning" },
+    type: "concept",
+    position: { x: 330, y: 40 },
+    data: {
+      title: "Machine Learning",
+      category: "Overview",
+      short: "Learn patterns from data.",
+    },
   },
   {
     id: "optimization",
-    position: { x: 150, y: 200 },
-    data: { label: "Optimization" },
+    type: "concept",
+    position: { x: 100, y: 220 },
+    data: {
+      title: "Optimization",
+      category: "Training",
+      short: "Update parameters to reduce loss.",
+    },
   },
   {
     id: "generalization",
-    position: { x: 500, y: 200 },
-    data: { label: "Generalization" },
+    type: "concept",
+    position: { x: 530, y: 220 },
+    data: {
+      title: "Generalization",
+      category: "Training",
+      short: "Perform well on unseen data.",
+    },
   },
 ];
 
@@ -47,10 +71,11 @@ export default function KnowledgeMap({
   onSelectConcept,
 }: KnowledgeMapProps) {
   return (
-    <div className="w-full h-full">
+    <div className="h-full w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         fitView
         onNodeClick={(_, node) => onSelectConcept(node.id)}
       >
