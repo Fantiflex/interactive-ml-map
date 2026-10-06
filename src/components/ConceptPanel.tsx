@@ -2,7 +2,7 @@ import GradientDescentVisualization from "./animations/GradientDescentVisualizat
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AdamVisualization from "./animations/AdamVisualization";
-import { concepts } from "../data/concepts";
+import { concepts } from "../content/concepts";
 import MomentumAnimation from "./animations/MomentumAnimation";
 import AdaptiveScalingDemo from "./animations/AdaptiveScalingDemo";
 
