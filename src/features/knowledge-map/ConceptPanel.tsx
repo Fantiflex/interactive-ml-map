@@ -5,6 +5,7 @@ import { concepts } from "../../content/concepts";
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
+import OrthogonalizationDemo from "../optimization/visualizations/OrthogonalizationDemo";
 import GradientDescentVisualization from "../optimization/visualizations/GradientDescentVisualization";
 import AdamVisualization from "../optimization/visualizations/AdamVisualization";
 import MomentumAnimation from "../optimization/visualizations/MomentumAnimation";
@@ -19,7 +20,9 @@ type ConceptPanelProps = {
 export default function ConceptPanel({
   selectedConcept,
 }: ConceptPanelProps) {
-  const [activeDemo, setActiveDemo] = useState<"adam" | "gd" | null>(null);
+  const [activeDemo, setActiveDemo] = useState<
+    "adam" | "gd" | "orthogonalization" | null
+  >(null);  
   const adamOpen = activeDemo !== null;
   useEffect(() => {
     if (!adamOpen) return;
@@ -75,7 +78,13 @@ export default function ConceptPanel({
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
       {adamOpen && createPortal(
         <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Interactive optimizer visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
-          {activeDemo === "gd" ? <GradientDescentVisualization onClose={() => setActiveDemo(null)} /> : <AdamVisualization onClose={() => setActiveDemo(null)} />}
+          {activeDemo === "gd" ? (
+            <GradientDescentVisualization onClose={() => setActiveDemo(null)} />
+          ) : activeDemo === "orthogonalization" ? (
+            <OrthogonalizationDemo onClose={() => setActiveDemo(null)} />
+          ) : (
+            <AdamVisualization onClose={() => setActiveDemo(null)} />
+          )}
         </div>,
         document.body
       )}
@@ -94,6 +103,15 @@ export default function ConceptPanel({
           className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
         >
           Explore Adam in 3D ↗
+        </button>
+      )}
+      {selectedConcept === "orthogonalization" && (
+        <button
+          type="button"
+          onClick={() => setActiveDemo("orthogonalization")}
+          className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
+        >
+          Explore update orthogonalization in 3D ↗
         </button>
       )}
       <div className="mb-6">
