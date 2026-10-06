@@ -1,15 +1,12 @@
 import { useState } from "react";
 import KnowledgeMap from "./components/KnowledgeMap";
-import { concepts } from "./data/concepts";
 import ConceptPanel from "./components/ConceptPanel";
 
 
 export default function App() {
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
 
-  const concept = selectedConcept
-    ? concepts[selectedConcept]
-    : null;
+  
 
   return (
     <div className="h-screen bg-neutral-50">

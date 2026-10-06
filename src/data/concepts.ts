@@ -18,6 +18,8 @@ export type Concept = {
   updates?: string[];
 
   uses?: string[];
+
+  animation?: "momentum" | "gd" | "rmsprop" | "adam";
 };
 
 export const concepts: Record<string, Concept> = {
@@ -68,6 +70,7 @@ export const concepts: Record<string, Concept> = {
     short: "Add memory to parameter updates.",
     intuition:
       "Momentum accumulates information from previous gradients or updates to reduce oscillation and accelerate movement in persistent directions.",
+    animation: "momentum",
   },
 
   "adaptive-scaling": {
@@ -217,8 +220,9 @@ export const concepts: Record<string, Concept> = {
       "Weight decay λ",
     ],
 
-    equation:
+    updates: [
       "θₜ₊₁ = AdamUpdate(θₜ) − ηλθₜ",
+    ],
 
     uses: [
       "gradient",

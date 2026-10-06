@@ -1,8 +1,8 @@
 import { concepts } from "../data/concepts";
+import MomentumAnimation from "./animations/MomentumAnimation";
+
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
-
-
 
 type ConceptPanelProps = {
   selectedConcept: string | null;
@@ -35,6 +35,7 @@ export default function ConceptPanel({
 
   return (
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
+      {/* Header */}
       <div className="mb-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
           {concept.kind}
@@ -49,6 +50,7 @@ export default function ConceptPanel({
         </p>
       </div>
 
+      {/* Intuition */}
       <section className="mb-6">
         <h3 className="mb-2 text-sm font-semibold text-neutral-900">
           Intuition
@@ -59,29 +61,42 @@ export default function ConceptPanel({
         </p>
       </section>
 
+      {/* Animation */}
+      {concept.animation === "momentum" && (
+        <section className="mb-6">
+          <h3 className="mb-3 text-sm font-semibold text-neutral-900">
+            Visualization
+          </h3>
+
+          <MomentumAnimation />
+        </section>
+      )}
+
+      {/* Update rules */}
       {concept.updates && concept.updates.length > 0 && (
         <section className="mb-6">
-            <h3 className="mb-3 text-sm font-semibold text-neutral-900">
+          <h3 className="mb-3 text-sm font-semibold text-neutral-900">
             Update rule
-            </h3>
+          </h3>
 
-            <div className="space-y-3">
+          <div className="space-y-3">
             {concept.updates.map((update, index) => (
-                <div
+              <div
                 key={update}
                 className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-                >
+              >
                 <p className="mb-1 text-xs font-medium text-neutral-400">
-                    Step {index + 1}
+                  Step {index + 1}
                 </p>
 
                 <BlockMath math={update} />
-                </div>
+              </div>
             ))}
-            </div>
+          </div>
         </section>
-        )}
+      )}
 
+      {/* Parameters */}
       {concept.parameters && concept.parameters.length > 0 && (
         <section className="mb-6">
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
@@ -101,6 +116,7 @@ export default function ConceptPanel({
         </section>
       )}
 
+      {/* Advantages */}
       {concept.advantages && concept.advantages.length > 0 && (
         <section className="mb-6">
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
@@ -120,6 +136,7 @@ export default function ConceptPanel({
         </section>
       )}
 
+      {/* Limitations */}
       {concept.disadvantages &&
         concept.disadvantages.length > 0 && (
           <section className="mb-6">
@@ -140,6 +157,7 @@ export default function ConceptPanel({
           </section>
         )}
 
+      {/* Uses */}
       {concept.uses && concept.uses.length > 0 && (
         <section>
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
