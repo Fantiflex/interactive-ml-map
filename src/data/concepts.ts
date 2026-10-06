@@ -1,8 +1,14 @@
+import { optimizationConcepts } from "./optimizationHierarchy";
+
+
+
 export type ConceptKind =
   | "concept"
   | "optimizer"
   | "mechanism"
-  | "math";
+  | "math"
+  | "algorithm";
+
 
 export type Concept = {
   title: string;
@@ -11,7 +17,7 @@ export type Concept = {
 
   short: string;
   intuition: string;
-
+  prerequisites?: string[];
   advantages?: string[];
   disadvantages?: string[];
   parameters?: string[];
@@ -263,3 +269,10 @@ export const concepts: Record<string, Concept> = {
     uses: ["gradient", "momentum", "orthogonalization"],
   },
 };
+
+for (const [id, definition] of Object.entries(optimizationConcepts)) {
+  concepts[id] = {
+    ...concepts[id],
+    ...definition,
+  };
+}
