@@ -5,73 +5,60 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 
-import type { ConceptKind } from "../data/concepts";
-
 export type ConceptNodeData = {
   title: string;
   category: string;
-  kind: ConceptKind;
   short: string;
+  kind?: string;
 };
 
 export type ConceptNodeType = Node<ConceptNodeData, "concept">;
 
-const kindStyles: Record<ConceptKind, string> = {
-  concept:
-    "border-neutral-300 bg-white",
-
-  optimizer:
-    "border-violet-300 bg-violet-50/40",
-
-  mechanism:
-    "border-blue-200 bg-blue-50/40",
-
-  math:
-    "border-amber-200 bg-amber-50/40",
-};
-
-const kindBadgeStyles: Record<ConceptKind, string> = {
-  concept:
+const categoryStyles: Record<string, string> = {
+  Overview:
     "bg-neutral-100 text-neutral-600",
 
-  optimizer:
-    "bg-violet-100 text-violet-700",
+  Training:
+    "bg-blue-50 text-blue-700",
 
-  mechanism:
-    "bg-blue-100 text-blue-700",
+  Optimization:
+    "bg-violet-50 text-violet-700",
 
-  math:
-    "bg-amber-100 text-amber-700",
-};
+  Generalization:
+    "bg-emerald-50 text-emerald-700",
 
-const kindLabels: Record<ConceptKind, string> = {
-  concept: "Concept",
-  optimizer: "Optimizer",
-  mechanism: "Mechanism",
-  math: "Math",
+  Math:
+    "bg-amber-50 text-amber-700",
 };
 
 export default function ConceptNode({
   data,
   selected,
 }: NodeProps<ConceptNodeType>) {
+  const categoryStyle =
+    categoryStyles[data.category] ??
+    "bg-neutral-100 text-neutral-600";
+
+  const kindColors: Record<string, string> = {
+    mechanism: "bg-sky-50 text-sky-700", algorithm: "bg-violet-50 text-violet-700",
+    math: "bg-amber-50 text-amber-700", concept: "bg-neutral-100 text-neutral-600",
+  };
   return (
     <div
       className={`
         min-w-[220px]
-        max-w-[240px]
         rounded-2xl
         border
+        bg-white
         px-4
         py-3
         shadow-sm
         transition-all
         duration-200
-        ${kindStyles[data.kind]}
         ${
           selected
-            ? "ring-2 ring-neutral-800 shadow-md"
-            : "hover:shadow-md hover:border-neutral-400"
+            ? "border-neutral-900 shadow-md ring-2 ring-neutral-200"
+            : "border-neutral-200 hover:border-neutral-400 hover:shadow-md"
         }
       `}
     >
@@ -81,33 +68,34 @@ export default function ConceptNode({
         className="!h-2 !w-2 !border-0 !bg-neutral-400"
       />
 
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={`
-            inline-block
-            rounded-full
-            px-2
-            py-1
-            text-[10px]
-            font-semibold
-            uppercase
-            tracking-wide
-            ${kindBadgeStyles[data.kind]}
-          `}
-        >
-          {kindLabels[data.kind]}
-        </span>
+      <Handle id="source-top" type="source" position={Position.Top} className="!h-2 !w-2 !opacity-0" />
+      <Handle id="target-bottom" type="target" position={Position.Bottom} className="!h-2 !w-2 !opacity-0" />
+      <Handle id="source-left" type="source" position={Position.Left} className="!h-2 !w-2 !opacity-0" />
+      <Handle id="target-left" type="target" position={Position.Left} className="!h-2 !w-2 !opacity-0" />
+      <Handle id="source-right" type="source" position={Position.Right} className="!h-2 !w-2 !opacity-0" />
+      <Handle id="target-right" type="target" position={Position.Right} className="!h-2 !w-2 !opacity-0" />
+      <span
+        className={`
+          inline-block
+          rounded-full
+          px-2
+          py-1
+          text-[10px]
+          font-semibold
+          uppercase
+          tracking-wide
+          ${categoryStyle}
+        `}
+      >
+        {data.category}
+      </span>
 
-        <span className="text-[10px] uppercase tracking-wide text-neutral-400">
-          {data.category}
-        </span>
-      </div>
-
+      {data.kind && <span className={`ml-2 inline-block rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${kindColors[data.kind] ?? kindColors.concept}`}>{data.kind === "algorithm" ? "Optimizer" : data.kind === "mechanism" ? "Mechanism" : "Foundation"}</span>}
       <h3 className="mt-3 text-base font-semibold text-neutral-900">
         {data.title}
       </h3>
 
-      <p className="mt-1 text-sm leading-snug text-neutral-500">
+      <p className="mt-1 max-w-[190px] text-sm leading-snug text-neutral-500">
         {data.short}
       </p>
 
