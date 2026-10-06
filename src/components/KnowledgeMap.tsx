@@ -39,7 +39,7 @@ const nodes: ConceptNodeType[] = [
     position: { x: 250, y: 180 },
     data: {
       title: "Optimization",
-      category: "Training",
+      category: "Optimization",
       short: "Update parameters to reduce loss.",
     },
   },
@@ -50,7 +50,7 @@ const nodes: ConceptNodeType[] = [
     position: { x: 610, y: 180 },
     data: {
       title: "Generalization",
-      category: "Training",
+      category: "Generalization",
       short: "Perform well on unseen data.",
     },
   },
@@ -174,7 +174,14 @@ export default function KnowledgeMap({
         nodeTypes={nodeTypes}
         fitView
         onNodeClick={(_, node) => onSelectConcept(node.id)}
-      >
+        defaultEdgeOptions={{
+            type: "smoothstep",
+            style: {
+            strokeWidth: 1.5,
+            stroke: "#a3a3a3",
+            },
+        }}
+        >
         <Background />
         <Controls />
       </ReactFlow>
