@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import GradientDescentVisualization from "../../components/animations/GradientDescentVisualization";
-import AdamVisualization from "../../components/animations/AdamVisualization";
 import { concepts } from "../../content/concepts";
-import MomentumAnimation from "../../components/animations/MomentumAnimation";
-import AdaptiveScalingDemo from "../../components/animations/AdaptiveScalingDemo";
 
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
+
+import GradientDescentVisualization from "../optimization/visualizations/GradientDescentVisualization";
+import AdamVisualization from "../optimization/visualizations/AdamVisualization";
+import MomentumAnimation from "../optimization/visualizations/MomentumAnimation";
+import AdaptiveScalingDemo from "../optimization/visualizations/AdaptiveScalingDemo";
 
 
 
