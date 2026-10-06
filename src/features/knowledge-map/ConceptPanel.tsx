@@ -5,9 +5,7 @@ import { concepts } from "../../content/concepts";
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
-import OrthogonalizationDemo from "../optimization/visualizations/OrthogonalizationDemo";
-import GradientDescentVisualization from "../optimization/visualizations/GradientDescentVisualization";
-import AdamVisualization from "../optimization/visualizations/AdamVisualization";
+import { visualizationRegistry } from "./visualizationRegistry";
 import MomentumAnimation from "../optimization/visualizations/MomentumAnimation";
 import AdaptiveScalingDemo from "../optimization/visualizations/AdaptiveScalingDemo";
 
@@ -20,9 +18,7 @@ type ConceptPanelProps = {
 export default function ConceptPanel({
   selectedConcept,
 }: ConceptPanelProps) {
-  const [activeDemo, setActiveDemo] = useState<
-    "adam" | "gd" | "orthogonalization" | null
-  >(null);  
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const adamOpen = activeDemo !== null;
   useEffect(() => {
     if (!adamOpen) return;
@@ -73,17 +69,37 @@ export default function ConceptPanel({
       </aside>
     );
   }
+  
+  const Visualization = activeDemo
+    ? visualizationRegistry[activeDemo]
+    : undefined;
+
+  const demoConcept = activeDemo ? concepts[activeDemo] : undefined;
 
   return (
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
       {adamOpen && createPortal(
         <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Interactive optimizer visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
-          {activeDemo === "gd" ? (
-            <GradientDescentVisualization onClose={() => setActiveDemo(null)} />
-          ) : activeDemo === "orthogonalization" ? (
-            <OrthogonalizationDemo onClose={() => setActiveDemo(null)} />
+          {Visualization ? (
+            <Visualization onClose={() => setActiveDemo(null)} />
           ) : (
-            <AdamVisualization onClose={() => setActiveDemo(null)} />
+            <main className="min-h-screen bg-neutral-950 p-8 text-white">
+              <button
+                type="button"
+                onClick={() => setActiveDemo(null)}
+                className="mb-8 rounded-lg border border-neutral-700 px-4 py-2"
+              >
+                ← Back to mindmap
+              </button>
+
+              <h1 className="mb-4 text-3xl font-semibold">
+                {demoConcept?.title ?? "Visualization"}
+              </h1>
+
+              <p className="text-neutral-400">
+                Not implemented yet.
+              </p>
+            </main>
           )}
         </div>,
         document.body
