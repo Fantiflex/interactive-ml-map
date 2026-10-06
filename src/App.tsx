@@ -1,6 +1,6 @@
 import { useState } from "react";
-import KnowledgeMap from "./components/KnowledgeMap";
-import ConceptPanel from "./components/ConceptPanel";
+import KnowledgeMap from "./features/knowledge-map/KnowledgeMap";
+import ConceptPanel from "./features/knowledge-map/ConceptPanel";
 
 
 export default function App() {

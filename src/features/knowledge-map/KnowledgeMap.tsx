@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Background, Controls, MarkerType, ReactFlow, type Edge, type NodeTypes } from "@xyflow/react";
-import { concepts } from "../content/concepts";
+import { concepts } from "../../content/concepts";
 import {
   hierarchyPositions,
   hierarchyRelations,
-} from "../content/optimizationHierarchy";
+} from "../../content/optimizationHierarchy";
 import ConceptNode, { type ConceptNodeType } from "./ConceptNode";
 import "@xyflow/react/dist/style.css";
 
