@@ -19,20 +19,20 @@ export default function ConceptPanel({
   selectedConcept,
 }: ConceptPanelProps) {
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
-  const adamOpen = activeDemo !== null;
+  const demoOpen = activeDemo !== null;
   useEffect(() => {
-    if (!adamOpen) return;
+    if (!demoOpen) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const oldOverflow = document.body.style.overflow;
     const focusFrame = window.requestAnimationFrame(() => {
-      document.querySelector<HTMLElement>("[data-adam-dialog] button")?.focus();
+      document.querySelector<HTMLElement>("[data-demo-dialog] button")?.focus();
     });
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActiveDemo(null);
       if (event.key === "Tab") {
         const focusable = Array.from(document.querySelectorAll<HTMLElement>(
-          "[data-adam-dialog] button:not(:disabled), [data-adam-dialog] a[href], [data-adam-dialog] input, [data-adam-dialog] select, [data-adam-dialog] summary"
+          "[data-demo-dialog] button:not(:disabled), [data-demo-dialog] a[href], [data-demo-dialog] input, [data-demo-dialog] select, [data-demo-dialog] summary"
         ));
         const first = focusable[0], last = focusable[focusable.length - 1];
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
@@ -46,7 +46,7 @@ export default function ConceptPanel({
       previouslyFocused?.focus();
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [adamOpen]);
+  }, [demoOpen]);
 
   if (!selectedConcept) {
     return (
@@ -78,8 +78,8 @@ export default function ConceptPanel({
 
   return (
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
-      {adamOpen && createPortal(
-        <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Interactive optimizer visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
+      {demoOpen && createPortal(
+        <div data-demo-dialog role="dialog" aria-modal="true" aria-label="Interactive concept visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
           {Visualization ? (
             <Visualization onClose={() => setActiveDemo(null)} />
           ) : (
@@ -104,13 +104,7 @@ export default function ConceptPanel({
         </div>,
         document.body
       )}
-      {([selectedConcept, concept.title].some(value => {
-        const normalized = value.toLowerCase().replace(/[^a-z]/g, "");
-        return normalized === "gd" || normalized.includes("gradientdescent");
-      })
-      )}
-      {(selectedConcept.toLowerCase() === "adam" || concept.title.trim().toLowerCase() === "adam")}
-      {selectedConcept === "orthogonalization"}
+
       <div className="mb-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
           {concept.kind}
