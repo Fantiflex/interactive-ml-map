@@ -107,29 +107,10 @@ export default function ConceptPanel({
       {([selectedConcept, concept.title].some(value => {
         const normalized = value.toLowerCase().replace(/[^a-z]/g, "");
         return normalized === "gd" || normalized.includes("gradientdescent");
-      })) && (
-        <button type="button" onClick={() => setActiveDemo("gd")} className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700">
-          Explore gradient descent in 3D ↗
-        </button>
+      })
       )}
-      {(selectedConcept.toLowerCase() === "adam" || concept.title.trim().toLowerCase() === "adam") && (
-        <button
-          type="button"
-          onClick={() => setActiveDemo("adam")}
-          className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
-        >
-          Explore Adam in 3D ↗
-        </button>
-      )}
-      {selectedConcept === "orthogonalization" && (
-        <button
-          type="button"
-          onClick={() => setActiveDemo("orthogonalization")}
-          className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
-        >
-          Explore update orthogonalization in 3D ↗
-        </button>
-      )}
+      {(selectedConcept.toLowerCase() === "adam" || concept.title.trim().toLowerCase() === "adam")}
+      {selectedConcept === "orthogonalization"}
       <div className="mb-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
           {concept.kind}
@@ -143,6 +124,13 @@ export default function ConceptPanel({
           {concept.short}
         </p>
       </div>
+      <button
+        type="button"
+        onClick={() => setActiveDemo(selectedConcept)}
+        className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
+      >
+        Open interactive visualization ↗
+      </button>
 
       <section className="mb-6">
         <h3 className="mb-2 text-sm font-semibold text-neutral-900">
