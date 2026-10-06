@@ -15,7 +15,7 @@ export type Concept = {
   advantages?: string[];
   disadvantages?: string[];
   parameters?: string[];
-  equation?: string;
+  updates?: string[];
 
   uses?: string[];
 };
@@ -109,26 +109,29 @@ export const concepts: Record<string, Concept> = {
     short: "Update parameters using the full gradient.",
 
     intuition:
-      "Gradient Descent moves parameters in the direction opposite to the gradient of the objective.",
+        "Gradient Descent moves parameters in the direction opposite to the gradient of the objective.",
 
     advantages: [
-      "Simple and easy to interpret",
-      "Deterministic when using the full dataset",
-      "Useful as a conceptual optimization baseline",
+        "Simple and easy to interpret",
+        "Deterministic when using the full dataset",
     ],
 
     disadvantages: [
-      "Computing the full gradient can be expensive",
-      "One global learning-rate scale may be inefficient",
-      "Can progress slowly in poorly conditioned landscapes",
+        "Computing the full gradient can be expensive",
+        "Can be slow in poorly conditioned landscapes",
     ],
 
-    parameters: ["Learning rate η"],
+    parameters: [
+        "Learning rate η",
+    ],
 
-    equation: "θₜ₊₁ = θₜ − η∇L(θₜ)",
+    updates: [
+        "g_t = \\nabla L(\\theta_t)",
+        "\\theta_{t+1} = \\theta_t - \\eta g_t",
+    ],
 
     uses: ["gradient"],
-  },
+    },
 
   rmsprop: {
     title: "RMSProp",
@@ -138,31 +141,22 @@ export const concepts: Record<string, Concept> = {
     short: "Adapt updates using squared-gradient statistics.",
 
     intuition:
-      "RMSProp keeps an exponential moving average of squared gradients and uses it to rescale updates coordinate-wise.",
-
-    advantages: [
-      "Adaptive per-parameter scaling",
-      "Useful when gradient magnitudes differ strongly across coordinates",
-      "Can stabilize optimization",
-    ],
-
-    disadvantages: [
-      "Requires additional optimizer state",
-      "Introduces additional hyperparameters",
-      "Adaptive scaling changes the geometry of the update",
-    ],
+        "RMSProp keeps an exponential moving average of squared gradients and uses it to rescale updates.",
 
     parameters: [
-      "Learning rate η",
-      "Decay β",
-      "Numerical stability ε",
+        "Learning rate η",
+        "Decay β",
+        "Numerical stability ε",
     ],
 
-    equation:
-      "vₜ = βvₜ₋₁ + (1−β)gₜ²; θₜ₊₁ = θₜ − ηgₜ/(√vₜ + ε)",
+    updates: [
+        "g_t = \\nabla L(\\theta_t)",
+        "v_t = \\beta v_{t-1} + (1-\\beta)g_t^2",
+        "\\theta_{t+1} = \\theta_t - \\eta \\frac{g_t}{\\sqrt{v_t}+\\epsilon}",
+    ],
 
     uses: ["gradient", "adaptive-scaling"],
-  },
+    },
 
   adam: {
     title: "Adam",
@@ -172,32 +166,26 @@ export const concepts: Record<string, Concept> = {
     short: "Momentum-like updates + adaptive scaling.",
 
     intuition:
-      "Adam maintains moving averages of both gradients and squared gradients, combining momentum-like behavior with adaptive scaling.",
-
-    advantages: [
-      "Adaptive learning rates",
-      "Momentum-like behavior",
-      "Strong general-purpose optimizer",
-    ],
-
-    disadvantages: [
-      "Requires more optimizer state",
-      "Introduces several hyperparameters",
-      "Can generalize differently from non-adaptive methods",
-    ],
+        "Adam maintains moving averages of both gradients and squared gradients.",
 
     parameters: [
-      "Learning rate η",
-      "β₁",
-      "β₂",
-      "Numerical stability ε",
+        "Learning rate η",
+        "β₁",
+        "β₂",
+        "Numerical stability ε",
     ],
 
-    equation:
-      "mₜ = β₁mₜ₋₁ + (1−β₁)gₜ; vₜ = β₂vₜ₋₁ + (1−β₂)gₜ²",
+    updates: [
+        "g_t = \\nabla L(\\theta_t)",
+        "m_t = \\beta_1 m_{t-1} + (1-\\beta_1)g_t",
+        "v_t = \\beta_2 v_{t-1} + (1-\\beta_2)g_t^2",
+        "\\hat{m}_t = \\frac{m_t}{1-\\beta_1^t}",
+        "\\hat{v}_t = \\frac{v_t}{1-\\beta_2^t}",
+        "\\theta_{t+1} = \\theta_t - \\eta \\frac{\\hat{m}_t}{\\sqrt{\\hat{v}_t}+\\epsilon}",
+    ],
 
     uses: ["gradient", "momentum", "adaptive-scaling"],
-  },
+    },
 
   adamw: {
     title: "AdamW",
