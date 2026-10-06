@@ -81,23 +81,25 @@ export default function MomentumDemo() {
             dragElastic={0}
             dragMomentum={true}
             dragTransition={{
-              power: 0.8,
-              timeConstant: 700,
+                power: 0.8,
+                timeConstant: 700,
+                bounceStiffness: 1000,
+                bounceDamping: 15,
             }}
             whileDrag={{
-              scale: 1.1,
+                scale: 1.1,
             }}
             className="
-              absolute
-              bottom-3
-              left-0
-              h-10
-              w-10
-              cursor-grab
-              rounded-full
-              bg-black
+                absolute
+                bottom-3
+                left-0
+                h-10
+                w-10
+                cursor-grab
+                rounded-full
+                bg-black
             "
-          />
+            />
         </div>
       </div>
     </div>
