@@ -14,27 +14,6 @@ import ConceptNode, {
   type ConceptNodeType,
 } from "./ConceptNode";
 
-function getPrerequisitePath(conceptId: string): Set<string> {
-  const result = new Set<string>();
-
-  function visit(id: string) {
-    const concept = concepts[id];
-
-    if (!concept?.prerequisites) return;
-
-    for (const prerequisite of concept.prerequisites) {
-      if (!result.has(prerequisite)) {
-        result.add(prerequisite);
-        visit(prerequisite);
-      }
-    }
-  }
-
-  visit(conceptId);
-
-  return result;
-}
-
 type KnowledgeMapProps = {
   onSelectConcept: (id: string) => void;
   selectedConcept: string | null;
@@ -45,100 +24,182 @@ const nodeTypes: NodeTypes = {
 };
 
 const nodes: ConceptNodeType[] = [
+  // ------------------------------------------------------------------
+  // HIGH-LEVEL CONCEPTS
+  // ------------------------------------------------------------------
+
   {
     id: "ml",
     type: "concept",
-    position: { x: 430, y: 20 },
+    position: { x: 500, y: 20 },
     data: {
-      title: "Machine Learning",
-      category: "Overview",
-      short: "Learn patterns from data.",
+      title: concepts.ml.title,
+      category: concepts.ml.category,
+      kind: concepts.ml.kind,
+      short: concepts.ml.short,
     },
   },
 
   {
     id: "optimization",
     type: "concept",
-    position: { x: 250, y: 180 },
+    position: { x: 500, y: 180 },
     data: {
-      title: "Optimization",
-      category: "Optimization",
-      short: "Update parameters to reduce loss.",
+      title: concepts.optimization.title,
+      category: concepts.optimization.category,
+      kind: concepts.optimization.kind,
+      short: concepts.optimization.short,
     },
   },
 
   {
     id: "generalization",
     type: "concept",
-    position: { x: 610, y: 180 },
+    position: { x: 850, y: 180 },
     data: {
-      title: "Generalization",
-      category: "Generalization",
-      short: "Perform well on unseen data.",
+      title: concepts.generalization.title,
+      category: concepts.generalization.category,
+      kind: concepts.generalization.kind,
+      short: concepts.generalization.short,
     },
   },
+
+  // ------------------------------------------------------------------
+  // OPTIMIZERS — SAME LEVEL
+  // ------------------------------------------------------------------
 
   {
     id: "gd",
     type: "concept",
-    position: { x: 100, y: 360 },
+    position: { x: -50, y: 420 },
     data: {
-      title: "Gradient Descent",
-      category: "Optimization",
-      short: "Follow the negative gradient.",
-    },
-  },
-
-  {
-    id: "sgd",
-    type: "concept",
-    position: { x: 350, y: 360 },
-    data: {
-      title: "SGD",
-      category: "Optimization",
-      short: "Use mini-batches.",
-    },
-  },
-
-  {
-    id: "momentum",
-    type: "concept",
-    position: { x: 230, y: 540 },
-    data: {
-      title: "Momentum",
-      category: "Optimization",
-      short: "Gradient + memory.",
+      title: concepts.gd.title,
+      category: concepts.gd.category,
+      kind: concepts.gd.kind,
+      short: concepts.gd.short,
     },
   },
 
   {
     id: "rmsprop",
     type: "concept",
-    position: { x: 480, y: 540 },
+    position: { x: 220, y: 420 },
     data: {
-      title: "RMSProp",
-      category: "Optimization",
-      short: "Adaptive gradient scaling.",
+      title: concepts.rmsprop.title,
+      category: concepts.rmsprop.category,
+      kind: concepts.rmsprop.kind,
+      short: concepts.rmsprop.short,
     },
   },
 
   {
     id: "adam",
     type: "concept",
-    position: { x: 355, y: 720 },
+    position: { x: 490, y: 420 },
     data: {
-      title: "Adam",
-      category: "Optimization",
-      short: "Momentum + RMSProp.",
+      title: concepts.adam.title,
+      category: concepts.adam.category,
+      kind: concepts.adam.kind,
+      short: concepts.adam.short,
+    },
+  },
+
+  {
+    id: "adamw",
+    type: "concept",
+    position: { x: 760, y: 420 },
+    data: {
+      title: concepts.adamw.title,
+      category: concepts.adamw.category,
+      kind: concepts.adamw.kind,
+      short: concepts.adamw.short,
+    },
+  },
+
+  {
+    id: "muon",
+    type: "concept",
+    position: { x: 1030, y: 420 },
+    data: {
+      title: concepts.muon.title,
+      category: concepts.muon.category,
+      kind: concepts.muon.kind,
+      short: concepts.muon.short,
+    },
+  },
+
+  // ------------------------------------------------------------------
+  // MECHANISMS / MATH
+  // ------------------------------------------------------------------
+
+  {
+    id: "gradient",
+    type: "concept",
+    position: { x: -50, y: 700 },
+    data: {
+      title: concepts.gradient.title,
+      category: concepts.gradient.category,
+      kind: concepts.gradient.kind,
+      short: concepts.gradient.short,
+    },
+  },
+
+  {
+    id: "momentum",
+    type: "concept",
+    position: { x: 220, y: 700 },
+    data: {
+      title: concepts.momentum.title,
+      category: concepts.momentum.category,
+      kind: concepts.momentum.kind,
+      short: concepts.momentum.short,
+    },
+  },
+
+  {
+    id: "adaptive-scaling",
+    type: "concept",
+    position: { x: 490, y: 700 },
+    data: {
+      title: concepts["adaptive-scaling"].title,
+      category: concepts["adaptive-scaling"].category,
+      kind: concepts["adaptive-scaling"].kind,
+      short: concepts["adaptive-scaling"].short,
+    },
+  },
+
+  {
+    id: "weight-decay",
+    type: "concept",
+    position: { x: 760, y: 700 },
+    data: {
+      title: concepts["weight-decay"].title,
+      category: concepts["weight-decay"].category,
+      kind: concepts["weight-decay"].kind,
+      short: concepts["weight-decay"].short,
+    },
+  },
+
+  {
+    id: "orthogonalization",
+    type: "concept",
+    position: { x: 1030, y: 700 },
+    data: {
+      title: concepts.orthogonalization.title,
+      category: concepts.orthogonalization.category,
+      kind: concepts.orthogonalization.kind,
+      short: concepts.orthogonalization.short,
     },
   },
 ];
 
 const edges: Edge[] = [
+  // Main hierarchy
   {
     id: "ml-opt",
     source: "ml",
     target: "optimization",
+    label: "training problem",
   },
 
   {
@@ -147,90 +208,212 @@ const edges: Edge[] = [
     target: "generalization",
   },
 
+  // Optimization → optimizer choices
   {
     id: "opt-gd",
     source: "optimization",
     target: "gd",
+    label: "optimizer",
   },
 
   {
-    id: "opt-sgd",
+    id: "opt-rmsprop",
     source: "optimization",
-    target: "sgd",
-  },
-
-  {
-    id: "sgd-momentum",
-    source: "sgd",
-    target: "momentum",
-    label: "add memory",
-  },
-
-  {
-    id: "sgd-rmsprop",
-    source: "sgd",
     target: "rmsprop",
-    label: "adaptive scaling",
+    label: "optimizer",
   },
 
   {
-    id: "momentum-adam",
-    source: "momentum",
+    id: "opt-adam",
+    source: "optimization",
     target: "adam",
+    label: "optimizer",
   },
 
   {
-    id: "rmsprop-adam",
+    id: "opt-adamw",
+    source: "optimization",
+    target: "adamw",
+    label: "optimizer",
+  },
+
+  {
+    id: "opt-muon",
+    source: "optimization",
+    target: "muon",
+    label: "optimizer",
+  },
+
+  // Optimizer → mechanisms they use
+  {
+    id: "gd-gradient",
+    source: "gd",
+    target: "gradient",
+    label: "uses",
+  },
+
+  {
+    id: "rmsprop-gradient",
     source: "rmsprop",
-    target: "adam",
+    target: "gradient",
+    label: "uses",
+  },
+
+  {
+    id: "rmsprop-adaptive",
+    source: "rmsprop",
+    target: "adaptive-scaling",
+    label: "uses",
+  },
+
+  {
+    id: "adam-gradient",
+    source: "adam",
+    target: "gradient",
+    label: "uses",
+  },
+
+  {
+    id: "adam-momentum",
+    source: "adam",
+    target: "momentum",
+    label: "uses",
+  },
+
+  {
+    id: "adam-adaptive",
+    source: "adam",
+    target: "adaptive-scaling",
+    label: "uses",
+  },
+
+  {
+    id: "adamw-gradient",
+    source: "adamw",
+    target: "gradient",
+    label: "uses",
+  },
+
+  {
+    id: "adamw-momentum",
+    source: "adamw",
+    target: "momentum",
+    label: "uses",
+  },
+
+  {
+    id: "adamw-adaptive",
+    source: "adamw",
+    target: "adaptive-scaling",
+    label: "uses",
+  },
+
+  {
+    id: "adamw-weight-decay",
+    source: "adamw",
+    target: "weight-decay",
+    label: "uses",
+  },
+
+  {
+    id: "muon-gradient",
+    source: "muon",
+    target: "gradient",
+    label: "uses",
+  },
+
+  {
+    id: "muon-momentum",
+    source: "muon",
+    target: "momentum",
+    label: "uses",
+  },
+
+  {
+    id: "muon-orthogonalization",
+    source: "muon",
+    target: "orthogonalization",
+    label: "uses",
   },
 ];
+
+function getRelatedConcepts(conceptId: string): Set<string> {
+  const related = new Set<string>();
+
+  related.add(conceptId);
+
+  const selected = concepts[conceptId];
+
+  // If an optimizer is selected, highlight the mechanisms it uses.
+  if (selected?.uses) {
+    selected.uses.forEach((id) => related.add(id));
+  }
+
+  // If a mechanism is selected, highlight all optimizers using it.
+  for (const [id, concept] of Object.entries(concepts)) {
+    if (concept.uses?.includes(conceptId)) {
+      related.add(id);
+    }
+  }
+
+  // Optimization is conceptually the parent of all optimizers.
+  if (selected?.kind === "optimizer") {
+    related.add("optimization");
+  }
+
+  // If Optimization itself is selected, show all optimizer choices.
+  if (conceptId === "optimization") {
+    for (const [id, concept] of Object.entries(concepts)) {
+      if (concept.kind === "optimizer") {
+        related.add(id);
+      }
+    }
+  }
+
+  return related;
+}
 
 export default function KnowledgeMap({
   onSelectConcept,
   selectedConcept,
 }: KnowledgeMapProps) {
-  const prerequisitePath = selectedConcept
-    ? getPrerequisitePath(selectedConcept)
+  const relatedConcepts = selectedConcept
+    ? getRelatedConcepts(selectedConcept)
     : new Set<string>();
 
   const displayNodes = nodes.map((node) => {
-    const isSelected = node.id === selectedConcept;
-    const isPrerequisite = prerequisitePath.has(node.id);
-
     const isRelated =
       !selectedConcept ||
-      isSelected ||
-      isPrerequisite;
+      relatedConcepts.has(node.id);
 
     return {
       ...node,
       style: {
         ...node.style,
-        opacity: isRelated ? 1 : 0.25,
+        opacity: isRelated ? 1 : 0.18,
       },
     };
   });
 
   const displayEdges = edges.map((edge) => {
-    const sourceRelated =
-      edge.source === selectedConcept ||
-      prerequisitePath.has(edge.source);
-
-    const targetRelated =
-      edge.target === selectedConcept ||
-      prerequisitePath.has(edge.target);
-
     const isRelated =
       !selectedConcept ||
-      (sourceRelated && targetRelated);
+      (
+        relatedConcepts.has(edge.source) &&
+        relatedConcepts.has(edge.target)
+      );
 
     return {
       ...edge,
+      animated: Boolean(selectedConcept && isRelated),
       style: {
-        strokeWidth: isRelated ? 2.5 : 1,
+        strokeWidth: isRelated ? 2.2 : 1,
         stroke: isRelated ? "#525252" : "#d4d4d4",
-        opacity: isRelated ? 1 : 0.2,
+        opacity: isRelated ? 1 : 0.12,
+      },
+      labelStyle: {
+        fill: isRelated ? "#525252" : "#a3a3a3",
+        fontSize: 11,
       },
     };
   });
@@ -242,7 +425,11 @@ export default function KnowledgeMap({
         edges={displayEdges}
         nodeTypes={nodeTypes}
         fitView
-        onNodeClick={(_, node) => onSelectConcept(node.id)}
+        minZoom={0.35}
+        maxZoom={1.5}
+        onNodeClick={(_, node) =>
+          onSelectConcept(node.id)
+        }
         defaultEdgeOptions={{
           type: "smoothstep",
           style: {
@@ -251,7 +438,7 @@ export default function KnowledgeMap({
           },
         }}
       >
-        <Background />
+        <Background gap={24} size={1} />
         <Controls />
       </ReactFlow>
     </div>
