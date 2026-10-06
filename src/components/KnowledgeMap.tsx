@@ -6,15 +6,38 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 
+import { concepts } from "../data/concepts";
+
 import "@xyflow/react/dist/style.css";
 
 import ConceptNode, {
   type ConceptNodeType,
 } from "./ConceptNode";
 
+function getPrerequisitePath(conceptId: string): Set<string> {
+  const result = new Set<string>();
+
+  function visit(id: string) {
+    const concept = concepts[id];
+
+    if (!concept?.prerequisites) return;
+
+    for (const prerequisite of concept.prerequisites) {
+      if (!result.has(prerequisite)) {
+        result.add(prerequisite);
+        visit(prerequisite);
+      }
+    }
+  }
+
+  visit(conceptId);
+
+  return result;
+}
 
 type KnowledgeMapProps = {
   onSelectConcept: (id: string) => void;
+  selectedConcept: string | null;
 };
 
 const nodeTypes: NodeTypes = {
@@ -165,23 +188,69 @@ const edges: Edge[] = [
 
 export default function KnowledgeMap({
   onSelectConcept,
+  selectedConcept,
 }: KnowledgeMapProps) {
+  const prerequisitePath = selectedConcept
+    ? getPrerequisitePath(selectedConcept)
+    : new Set<string>();
+
+  const displayNodes = nodes.map((node) => {
+    const isSelected = node.id === selectedConcept;
+    const isPrerequisite = prerequisitePath.has(node.id);
+
+    const isRelated =
+      !selectedConcept ||
+      isSelected ||
+      isPrerequisite;
+
+    return {
+      ...node,
+      style: {
+        ...node.style,
+        opacity: isRelated ? 1 : 0.25,
+      },
+    };
+  });
+
+  const displayEdges = edges.map((edge) => {
+    const sourceRelated =
+      edge.source === selectedConcept ||
+      prerequisitePath.has(edge.source);
+
+    const targetRelated =
+      edge.target === selectedConcept ||
+      prerequisitePath.has(edge.target);
+
+    const isRelated =
+      !selectedConcept ||
+      (sourceRelated && targetRelated);
+
+    return {
+      ...edge,
+      style: {
+        strokeWidth: isRelated ? 2.5 : 1,
+        stroke: isRelated ? "#525252" : "#d4d4d4",
+        opacity: isRelated ? 1 : 0.2,
+      },
+    };
+  });
+
   return (
     <div className="h-full w-full">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={displayNodes}
+        edges={displayEdges}
         nodeTypes={nodeTypes}
         fitView
         onNodeClick={(_, node) => onSelectConcept(node.id)}
         defaultEdgeOptions={{
-            type: "smoothstep",
-            style: {
+          type: "smoothstep",
+          style: {
             strokeWidth: 1.5,
             stroke: "#a3a3a3",
-            },
+          },
         }}
-        >
+      >
         <Background />
         <Controls />
       </ReactFlow>

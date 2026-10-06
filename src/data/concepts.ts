@@ -1,72 +1,72 @@
+
+
+export type ConceptKind =
+  | "concept"
+  | "algorithm"
+  | "mechanism"
+  | "math";
+
 export type Concept = {
   title: string;
   category: string;
+  kind: ConceptKind;
   short: string;
   intuition: string;
+  prerequisites?: string[];
 };
 
 export const concepts: Record<string, Concept> = {
-  ml: {
-    title: "Machine Learning",
-    category: "Overview",
-    short: "Learn patterns from data to make predictions or decisions.",
-    intuition:
-      "Machine learning connects a real-world objective to a model, a loss, and an optimization procedure.",
-  },
-
-  optimization: {
+    optimization: {
     title: "Optimization",
-    category: "Training",
-    short: "Update model parameters to reduce the loss.",
+    category: "Optimization",
+    kind: "concept",
+    short: "Find parameters that reduce an objective.",
     intuition:
-      "Optimization determines how the model changes its parameters during training.",
-  },
+        "Optimization is the general problem of adjusting model parameters to minimize a loss.",
+    },
 
-  generalization: {
-    title: "Generalization",
-    category: "Training",
-    short: "Perform well on unseen data.",
-    intuition:
-      "A model should not only fit the training set, but also work well on new examples.",
-  },
-
-  gd: {
+    gd: {
     title: "Gradient Descent",
     category: "Optimization",
-    short: "Move parameters in the opposite direction of the gradient.",
+    kind: "algorithm",
+    short: "Follow the negative gradient.",
     intuition:
-      "Gradient descent uses the full dataset to compute a direction that reduces the loss.",
-  },
+        "Gradient Descent is an optimization algorithm that updates parameters using the full gradient.",
+    },
 
-  sgd: {
+    sgd: {
     title: "SGD",
     category: "Optimization",
-    short: "Estimate the gradient using a mini-batch.",
+    kind: "algorithm",
+    short: "Use stochastic mini-batch gradients.",
     intuition:
-      "Instead of computing the gradient over the full dataset, SGD uses a smaller random batch, making updates cheaper but noisier.",
-  },
+        "SGD is an optimization algorithm that approximates the full gradient using mini-batches.",
+    },
 
-  momentum: {
+    momentum: {
     title: "Momentum",
     category: "Optimization",
-    short: "Gradient descent with inertia.",
+    kind: "mechanism",
+    short: "Add memory to the update.",
     intuition:
-      "Momentum keeps memory of previous update directions, which can reduce oscillation and accelerate movement in consistent directions.",
-  },
+        "Momentum is a mechanism that accumulates previous update directions to reduce oscillation and accelerate consistent movement.",
+    },
 
-  rmsprop: {
+    rmsprop: {
     title: "RMSProp",
     category: "Optimization",
-    short: "Adapt the step size using recent squared gradients.",
+    kind: "algorithm",
+    short: "Adapt step sizes using squared gradients.",
     intuition:
-      "RMSProp rescales updates coordinate-wise using a moving average of squared gradients.",
-  },
+        "RMSProp is an adaptive optimization algorithm that rescales updates using a moving average of squared gradients.",
+    },
 
-  adam: {
+    adam: {
     title: "Adam",
     category: "Optimization",
-    short: "Combine momentum and adaptive scaling.",
+    kind: "algorithm",
+    short: "Combine momentum-like and adaptive updates.",
     intuition:
-      "Adam combines a moving average of gradients with a moving average of squared gradients.",
-  },
+        "Adam is an optimization algorithm combining momentum-like first-moment estimates with RMSProp-like second-moment scaling.",
+    },
 };

@@ -17,7 +17,10 @@ export default function App() {
 
       <main className="flex h-[calc(100vh-4rem)]">
         <section className="flex-1">
-          <KnowledgeMap onSelectConcept={setSelectedConcept} />
+          <KnowledgeMap
+            onSelectConcept={setSelectedConcept}
+            selectedConcept={selectedConcept}
+          />
         </section>
 
         <aside className="w-[360px] border-l bg-white p-6">
