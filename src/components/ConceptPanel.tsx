@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import AdamVisualization from "./animations/AdamVisualization";
 import { concepts } from "../data/concepts";
 import MomentumAnimation from "./animations/MomentumAnimation";
 
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
+
+
 
 type ConceptPanelProps = {
   selectedConcept: string | null;
@@ -11,6 +16,35 @@ type ConceptPanelProps = {
 export default function ConceptPanel({
   selectedConcept,
 }: ConceptPanelProps) {
+  const [adamOpen, setAdamOpen] = useState(false);
+  useEffect(() => {
+    if (!adamOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const oldOverflow = document.body.style.overflow;
+    const focusFrame = window.requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>("[data-adam-dialog] button")?.focus();
+    });
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAdamOpen(false);
+      if (event.key === "Tab") {
+        const focusable = Array.from(document.querySelectorAll<HTMLElement>(
+          "[data-adam-dialog] button:not(:disabled), [data-adam-dialog] a[href], [data-adam-dialog] input, [data-adam-dialog] select, [data-adam-dialog] summary"
+        ));
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = oldOverflow;
+      previouslyFocused?.focus();
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [adamOpen]);
+
   if (!selectedConcept) {
     return (
       <aside className="w-[380px] border-l bg-white p-6">
@@ -35,7 +69,21 @@ export default function ConceptPanel({
 
   return (
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
-      {/* Header */}
+      {adamOpen && createPortal(
+        <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Adam interactive visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
+          <AdamVisualization onClose={() => setAdamOpen(false)} />
+        </div>,
+        document.body
+      )}
+      {(selectedConcept.toLowerCase() === "adam" || concept.title.trim().toLowerCase() === "adam") && (
+        <button
+          type="button"
+          onClick={() => setAdamOpen(true)}
+          className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
+        >
+          Explore Adam in 3D ↗
+        </button>
+      )}
       <div className="mb-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
           {concept.kind}
@@ -50,7 +98,6 @@ export default function ConceptPanel({
         </p>
       </div>
 
-      {/* Intuition */}
       <section className="mb-6">
         <h3 className="mb-2 text-sm font-semibold text-neutral-900">
           Intuition
@@ -61,42 +108,35 @@ export default function ConceptPanel({
         </p>
       </section>
 
-      {/* Animation */}
+            {concept.updates && concept.updates.length > 0 && (
+              <section className="mb-6">
+                <h3 className="mb-3 text-sm font-semibold text-neutral-900">
+                  Update rule
+                </h3>
+
+                <div className="space-y-3">
+                  {concept.updates.map((update, index) => (
+                    <div
+                      key={update}
+                      className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+                    >
+                      <p className="mb-1 text-xs font-medium text-neutral-400">
+                        Step {index + 1}
+                      </p>
+
+                      <BlockMath math={update} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
       {concept.animation === "momentum" && (
         <section className="mb-6">
-          <h3 className="mb-3 text-sm font-semibold text-neutral-900">
-            Visualization
-          </h3>
-
           <MomentumAnimation />
         </section>
       )}
 
-      {/* Update rules */}
-      {concept.updates && concept.updates.length > 0 && (
-        <section className="mb-6">
-          <h3 className="mb-3 text-sm font-semibold text-neutral-900">
-            Update rule
-          </h3>
-
-          <div className="space-y-3">
-            {concept.updates.map((update, index) => (
-              <div
-                key={update}
-                className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-              >
-                <p className="mb-1 text-xs font-medium text-neutral-400">
-                  Step {index + 1}
-                </p>
-
-                <BlockMath math={update} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Parameters */}
       {concept.parameters && concept.parameters.length > 0 && (
         <section className="mb-6">
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
@@ -116,7 +156,6 @@ export default function ConceptPanel({
         </section>
       )}
 
-      {/* Advantages */}
       {concept.advantages && concept.advantages.length > 0 && (
         <section className="mb-6">
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
@@ -136,7 +175,6 @@ export default function ConceptPanel({
         </section>
       )}
 
-      {/* Limitations */}
       {concept.disadvantages &&
         concept.disadvantages.length > 0 && (
           <section className="mb-6">
@@ -157,7 +195,6 @@ export default function ConceptPanel({
           </section>
         )}
 
-      {/* Uses */}
       {concept.uses && concept.uses.length > 0 && (
         <section>
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">
