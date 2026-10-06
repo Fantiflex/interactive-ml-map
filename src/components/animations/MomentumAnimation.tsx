@@ -1,9 +1,12 @@
 import { motion } from "motion/react";
+import { useRef } from "react";
 
 export default function MomentumDemo() {
+  const noMomentumTrack = useRef<HTMLDivElement>(null);
+  const momentumTrack = useRef<HTMLDivElement>(null);
+
   return (
     <div className="space-y-10 py-8">
-
       <div>
         <h3 className="text-lg font-semibold">
           What does momentum do?
@@ -27,14 +30,13 @@ export default function MomentumDemo() {
           </span>
         </div>
 
-        <div className="relative h-20 overflow-hidden border-b border-gray-300">
-
+        <div
+          ref={noMomentumTrack}
+          className="relative h-20 overflow-hidden border-b border-gray-300"
+        >
           <motion.div
             drag="x"
-            dragConstraints={{
-              left: 0,
-              right: 400,
-            }}
+            dragConstraints={noMomentumTrack}
             dragElastic={0}
             dragMomentum={false}
             whileDrag={{
@@ -53,7 +55,6 @@ export default function MomentumDemo() {
               bg-white
             "
           />
-
         </div>
       </div>
 
@@ -70,14 +71,13 @@ export default function MomentumDemo() {
           </span>
         </div>
 
-        <div className="relative h-20 overflow-hidden border-b border-gray-300">
-
+        <div
+          ref={momentumTrack}
+          className="relative h-20 overflow-hidden border-b border-gray-300"
+        >
           <motion.div
             drag="x"
-            dragConstraints={{
-              left: 0,
-              right: 400,
-            }}
+            dragConstraints={momentumTrack}
             dragElastic={0}
             dragMomentum={true}
             dragTransition={{
@@ -98,10 +98,8 @@ export default function MomentumDemo() {
               bg-black
             "
           />
-
         </div>
       </div>
-
     </div>
   );
 }
