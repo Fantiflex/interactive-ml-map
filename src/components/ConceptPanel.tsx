@@ -1,3 +1,4 @@
+import GradientDescentVisualization from "./animations/GradientDescentVisualization";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import AdamVisualization from "./animations/AdamVisualization";
@@ -16,7 +17,8 @@ type ConceptPanelProps = {
 export default function ConceptPanel({
   selectedConcept,
 }: ConceptPanelProps) {
-  const [adamOpen, setAdamOpen] = useState(false);
+  const [activeDemo, setActiveDemo] = useState<"adam" | "gd" | null>(null);
+  const adamOpen = activeDemo !== null;
   useEffect(() => {
     if (!adamOpen) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -26,7 +28,7 @@ export default function ConceptPanel({
     });
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setAdamOpen(false);
+      if (event.key === "Escape") setActiveDemo(null);
       if (event.key === "Tab") {
         const focusable = Array.from(document.querySelectorAll<HTMLElement>(
           "[data-adam-dialog] button:not(:disabled), [data-adam-dialog] a[href], [data-adam-dialog] input, [data-adam-dialog] select, [data-adam-dialog] summary"
@@ -70,15 +72,23 @@ export default function ConceptPanel({
   return (
     <aside className="w-[380px] overflow-y-auto border-l bg-white p-6">
       {adamOpen && createPortal(
-        <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Adam interactive visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
-          <AdamVisualization onClose={() => setAdamOpen(false)} />
+        <div data-adam-dialog role="dialog" aria-modal="true" aria-label="Interactive optimizer visualization" style={{ position: "fixed", inset: 0, zIndex: 1000, overflowY: "auto" }}>
+          {activeDemo === "gd" ? <GradientDescentVisualization onClose={() => setActiveDemo(null)} /> : <AdamVisualization onClose={() => setActiveDemo(null)} />}
         </div>,
         document.body
+      )}
+      {([selectedConcept, concept.title].some(value => {
+        const normalized = value.toLowerCase().replace(/[^a-z]/g, "");
+        return normalized === "gd" || normalized.includes("gradientdescent");
+      })) && (
+        <button type="button" onClick={() => setActiveDemo("gd")} className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700">
+          Explore gradient descent in 3D ↗
+        </button>
       )}
       {(selectedConcept.toLowerCase() === "adam" || concept.title.trim().toLowerCase() === "adam") && (
         <button
           type="button"
-          onClick={() => setAdamOpen(true)}
+          onClick={() => setActiveDemo("adam")}
           className="mb-6 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-700"
         >
           Explore Adam in 3D ↗
