@@ -4,17 +4,22 @@ import type { CSSProperties } from "react";
 // Standalone React component. No dependencies beyond React; the 3D view is
 // projected onto Canvas so it works inside an existing React/Vite application.
 type Vec = [number, number];
-type Settings = { alpha: number; x: number; y: number; curvature1: number; curvature2: number; angle: number };
+type Landscape = "ripples" | "rosenbrock" | "bowl";
+type Settings = { surface: Landscape; alpha: number; x: number; y: number; curvature1: number; curvature2: number; angle: number };
 type GradientStep = { t: number; before: Vec; after: Vec; lossBefore: number; lossAfter: number; g: Vec; delta: Vec };
-const INITIAL: Settings = { alpha: 0.08, x: -2.6, y: 1.8, curvature1: 1, curvature2: 8, angle: 45 };
+const INITIAL: Settings = { surface: "ripples", alpha: 0.08, x: -2.6, y: 1.8, curvature1: 1, curvature2: 8, angle: 45 };
 const STEPS = 250;
 const DOMAIN = 3.5;
 export const evaluateLoss = (s: Settings, x: number, y: number) => {
+  if (s.surface === "ripples") return 0.15 * (x*x + y*y) + 0.7 * (Math.sin(1.8*x)**2 + Math.sin(1.8*y)**2) + 0.25 * Math.sin(x+y)**2;
+  if (s.surface === "rosenbrock") return 0.02 * ((1-x)**2 + 100 * (y-x*x)**2);
   const a = s.angle * Math.PI / 180, c = Math.cos(a), d = Math.sin(a);
   const u = c * x + d * y, v = -d * x + c * y;
   return 0.5 * (s.curvature1 * u * u + s.curvature2 * v * v);
 };
 export const evaluateGradient = (s: Settings, x: number, y: number): Vec => {
+  if (s.surface === "ripples") return [0.3*x + 1.26*Math.sin(3.6*x) + 0.25*Math.sin(2*(x+y)), 0.3*y + 1.26*Math.sin(3.6*y) + 0.25*Math.sin(2*(x+y))];
+  if (s.surface === "rosenbrock") return [0.02 * (2*(x-1) - 400*x*(y-x*x)), 4*(y-x*x)];
   const a = s.angle * Math.PI / 180, c = Math.cos(a), d = Math.sin(a);
   const u = c * x + d * y, v = -d * x + c * y;
   return [s.curvature1 * u * c - s.curvature2 * v * d, s.curvature1 * u * d + s.curvature2 * v * c];
@@ -101,10 +106,15 @@ function Surface({ run, index, stage, initial, resetKey, settings, onPositionCha
         const b = Math.sin(yaw) * x + Math.cos(yaw) * y;
         return { x: w / 2 + a * scale, y: h * 0.63 + (b * Math.sin(tilt) - z * Math.cos(tilt)) * scale, depth: b * Math.cos(tilt) + z * Math.sin(tilt) };
       };
-      const height = (x: number, y: number) => evaluateLoss(config, x, y) * 0.055 * 8 / Math.max(8, config.curvature1, config.curvature2);
+      const height = (x: number, y: number) => {
+        const f = evaluateLoss(config, x, y);
+        if (config.surface === "ripples") return f * 0.7;
+        if (config.surface === "rosenbrock") return 0.75 * Math.log1p(f);
+        return f * 0.055 * 8 / Math.max(8, config.curvature1, config.curvature2);
+      };
       // Painter's algorithm for a triangulated 3D height field.
       const triangles: SurfaceTriangle[] = [];
-      const n = 30;
+      const n = 42;
       for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
         const x = -DOMAIN + i * 2 * DOMAIN / n, y = -DOMAIN + j * 2 * DOMAIN / n, d = 2 * DOMAIN / n;
         for (const coords of [[[x, y], [x + d, y], [x, y + d]], [[x + d, y], [x + d, y + d], [x, y + d]]]) {
@@ -125,9 +135,10 @@ function Surface({ run, index, stage, initial, resetKey, settings, onPositionCha
       const path: Vec[] = [start, ...data.slice(0, stepIndex).map(s => s.after), position];
       if (showPreview) { ctx.setLineDash([4, 5]); line([start, ...data.map(s => s.after)], "rgba(255,209,139,.3)", 1.5); ctx.setLineDash([]); }
       line(path, "#ffd18b", 2.5);
-      const origin = project(0, 0, 0.08);
+      const min: Vec = config.surface === "rosenbrock" ? [1,1] : [0,0];
+      const origin = project(...min, 0.08);
       ctx.strokeStyle = "#b6ffdc"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(origin.x, origin.y, 6, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = "#d5eee5"; ctx.font = "11px system-ui"; ctx.fillText("minimum (0, 0)", origin.x + 10, origin.y + 4);
+      ctx.fillStyle = "#d5eee5"; ctx.font = "11px system-ui"; ctx.fillText(config.surface === "rosenbrock" ? "global minimum (1, 1)" : "global minimum (0, 0)", origin.x + 10, origin.y + 4);
       for (const [x, y, label] of [[DOMAIN, 0, "x"], [0, DOMAIN, "y"]] as [number, number, string][]) {
         const p = project(x, y, height(x, y)); ctx.fillStyle = "#a6bcb5"; ctx.font = "bold 14px system-ui"; ctx.fillText(label, p.x + 10, p.y);
       }
@@ -187,9 +198,9 @@ function LossChart({ run, index }: { run: GradientStep[]; index: number }) {
 
 function exportCSV(run: GradientStep[], s: Settings) {
   const vectors: ("before" | "g" | "delta" | "after")[] = ["before", "g", "delta", "after"];
-  const lines = [["t", "eta", "curvature1", "curvature2", "rotation_degrees", "loss_before", "loss_after", ...vectors.flatMap(k => [`${k}_x`, `${k}_y`])].join(","), ...run.map(row => [row.t, s.alpha, s.curvature1, s.curvature2, s.angle, row.lossBefore, row.lossAfter, ...vectors.flatMap(k => row[k])].join(","))];
+  const lines = [["surface", "t", "eta", "curvature1", "curvature2", "rotation_degrees", "loss_before", "loss_after", ...vectors.flatMap(k => [`${k}_x`, `${k}_y`])].join(","), ...run.map(row => [s.surface, row.t, s.alpha, s.curvature1, s.curvature2, s.angle, row.lossBefore, row.lossAfter, ...vectors.flatMap(k => row[k])].join(","))];
   const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" }));
-  const a = document.createElement("a"); a.href = url; a.download = `gradient-descent-${run.length}-steps.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const a = document.createElement("a"); a.href = url; a.download = `gradient-descent-${s.surface}-${run.length}-steps.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export default function GradientDescentVisualization({ onClose }: { onClose?: () => void }) {
@@ -203,7 +214,7 @@ export default function GradientDescentVisualization({ onClose }: { onClose?: ()
   const advance = () => { if (stage < 2) setStage(stage + 1); else if (index < total - 1) { setIndex(index + 1); setStage(0); } else setPlaying(false); };
   useEffect(() => { if (!playing) return; const id = window.setTimeout(advance, speed); return () => window.clearTimeout(id); });
   const reset = () => { setPlaying(false); setIndex(0); setStage(0); };
-  const change = (key: keyof Settings, value: number) => { reset(); setSettings(s => ({ ...s, [key]: value })); };
+  const change = (key: Exclude<keyof Settings, "surface">, value: number) => { reset(); setSettings(s => ({ ...s, [key]: value })); };
   const placeBall = (position: Vec) => {
     reset();
     setSettings(s => ({ ...s, x: Math.max(-DOMAIN, Math.min(DOMAIN, position[0])), y: Math.max(-DOMAIN, Math.min(DOMAIN, position[1])) }));
@@ -213,6 +224,15 @@ export default function GradientDescentVisualization({ onClose }: { onClose?: ()
   const B = (settings.curvature1 - settings.curvature2) * c * d;
   const C = settings.curvature1 * d * d + settings.curvature2 * c * c;
   const displayPosition = stage === 2 ? current.after : current.before;
+  const landscapeNames: Record<Landscape, string> = { ripples: "Coupled ripples · multiple local minima", rosenbrock: "Rosenbrock · a curved, narrow valley", bowl: "Quadratic · reference surface" };
+  const selectLandscape = (surface: Landscape) => {
+    reset();
+    setSettings(s => ({ ...s, surface, alpha: surface === "rosenbrock" ? 0.01 : 0.08, x: surface === "rosenbrock" ? -1.2 : -2.6, y: surface === "rosenbrock" ? 1 : 1.8 }));
+  };
+  const numericControls: [Exclude<keyof Settings, "surface">, string, number, number, number][] = [
+    ["alpha", "Learning rate η", 0.0001, 0.5, 0.0001], ["x", "Starting x", -3.5, 3.5, 0.05], ["y", "Starting y", -3.5, 3.5, 0.05],
+    ...(settings.surface === "bowl" ? [["curvature1", "Curvature λ₁", 0.2, 12, 0.2], ["curvature2", "Curvature λ₂", 0.2, 12, 0.2], ["angle", "Valley rotation (°)", 0, 90, 1]] as ["curvature1" | "curvature2" | "angle", string, number, number, number][] : []),
+  ];
   const rows: [string, Vec, string, number][] = [
     ["Parameters before · θₜ₋₁", current.before, "Starting position", -1],
     ["Gradient · gₜ", current.g, "Local slope", 0],
@@ -225,27 +245,30 @@ export default function GradientDescentVisualization({ onClose }: { onClose?: ()
     <style>{CSS}</style>
     <header className="adam-header"><div className="adam-brand"><span className="adam-logo">a</span><span>ML MINDMAP <span className="adam-slash">/</span> INTERACTIVE LAB</span></div><div className="adam-header-actions">{onClose && <button onClick={onClose}>← Back to mindmap</button>}</div></header>
     <section className="adam-intro"><div><p className="adam-eyebrow">OPTIMIZATION / 01</p><h1>Gradient descent, <em>in motion.</em></h1><p>Follow a ball across a loss landscape. Choose a starting point, change the learning rate, and inspect each downhill step.</p></div><span className="adam-badge"><span /> LIVE CALCULATION</span></section>
-    {settings.alpha >= 2 / Math.max(settings.curvature1, settings.curvature2) && <div className="gd-warning">η reaches or exceeds the stability limit for this quadratic. The ball can oscillate or move uphill. Lower η to compare a stable run.</div>}
+    {settings.surface === "bowl" && settings.alpha >= 2 / Math.max(settings.curvature1, settings.curvature2) && <div className="gd-warning">η reaches or exceeds the stability limit for this quadratic. The ball can oscillate or move uphill. Lower η to compare a stable run.</div>}
     {total < STEPS && <div className="gd-warning">Run stopped at {total} updates because the parameter norm exceeded 10⁶. The simulation does not clip the parameters.</div>}
+    <div className="gd-landscape-picker"><label>Loss function <select value={settings.surface} onChange={e => selectLandscape(e.target.value as Landscape)}>{Object.entries(landscapeNames).map(([key,name]) => <option key={key} value={key}>{name}</option>)}</select></label><p>{settings.surface === "ripples" ? "Try starting in different valleys: gradient descent can settle at different local minima." : settings.surface === "rosenbrock" ? "Watch the ball turn through the curved valley. A small gradient can still leave it far from the minimum." : "Use this simple reference to compare with the nonconvex surfaces."}</p></div>
     <div className="adam-layout">
       <section className="adam-left">
-        <div className="adam-surface-card"><div className="adam-card-top"><div><span className="adam-eyebrow">THE LOSS LANDSCAPE</span><h2>Your quadratic loss surface</h2></div><button onClick={() => setCameraKey(k => k + 1)}>Reset view</button></div>
+        <div className="adam-surface-card"><div className="adam-card-top"><div><span className="adam-eyebrow">THE LOSS LANDSCAPE</span><h2>{landscapeNames[settings.surface]}</h2></div><button onClick={() => setCameraKey(k => k + 1)}>Reset view</button></div>
           <Surface run={run} index={index} stage={stage} initial={[settings.x, settings.y]} resetKey={cameraKey} settings={settings} onPositionChange={placeBall} preview={preview} />
           <div className="adam-surface-caption"><span><i className="adam-dot" /> Gradient descent trajectory</span><span>Drag ball to place · drag surface to orbit</span></div>
           <div className="adam-stats"><div><small>ITERATION</small><strong>{current.t}<span> / {total}</span></strong></div><div><small>CURRENT LOSS</small><strong>{fmt(stage === 2 ? current.lossAfter : current.lossBefore)}</strong></div><div><small>POSITION (x, y)</small><strong className="adam-position">({fmt(displayPosition[0])}, {fmt(displayPosition[1])})</strong></div></div>
         </div>
-        <div className="adam-ball-controls"><span>Place the ball, then press Play.</span><button onClick={() => placeBall([0, 0])}>Place at minimum</button><label><input type="checkbox" checked={preview} onChange={e => setPreview(e.target.checked)} /> Preview full trajectory</label></div>
+        <div className="adam-ball-controls"><span>Place the ball, then press Play.</span><button onClick={() => placeBall(settings.surface === "rosenbrock" ? [1, 1] : [0, 0])}>Place at global minimum</button><label><input type="checkbox" checked={preview} onChange={e => setPreview(e.target.checked)} /> Preview full trajectory</label></div>
         <div className="adam-playback"><div className="adam-play-buttons"><button className="adam-primary" style={buttonStyle} onClick={() => { if (index === total - 1 && stage === 2) { setIndex(0); setStage(0); } setPlaying(p => !p); }}>{playing ? "Ⅱ Pause" : "▶ Play"}</button><button onClick={() => { setPlaying(false); if (stage > 0) setStage(stage - 1); else if (index > 0) { setIndex(index - 1); setStage(2); } }} disabled={index === 0 && stage === 0}>← Previous</button><button onClick={() => { setPlaying(false); advance(); }} disabled={index === total - 1 && stage === 2}>Next stage →</button><button onClick={() => { setPlaying(false); if (stage < 2) setStage(2); else if (index < total - 1) { setIndex(index + 1); setStage(2); } }} disabled={index === total - 1 && stage === 2}>Next update</button><button onClick={reset}>↺ Restart</button><select aria-label="Playback speed" value={speed} onChange={e => setSpeed(Number(e.target.value))}><option value={1400}>0.5× speed</option><option value={700}>1× speed</option><option value={350}>2× speed</option><option value={120}>Fast run</option></select></div><label className="adam-scrub">Inspect an iteration <input aria-label="Iteration" type="range" min="1" max={total} value={index + 1} onChange={e => { setPlaying(false); setIndex(Number(e.target.value) - 1); setStage(0); }} /><span>{index + 1}</span></label></div>
-        <div className="adam-bottom-grid"><section className="adam-mini-card"><div className="adam-card-top"><h2>Loss over time</h2><span>f(θ)</span></div><LossChart run={run} index={index} /><p>The full run is muted; the inspected path is gold. Drag the iteration slider to scrub the ball through its evolution. Loss can increase between updates.</p></section><section className="adam-mini-card"><h2>The function</h2><div className="adam-function">f(x,y) = ½({A.toFixed(3)}x² {B < 0 ? "−" : "+"} {Math.abs(2 * B).toFixed(3)}xy + {C.toFixed(3)}y²)</div><p>∇f = ({A.toFixed(3)}x {B < 0 ? "−" : "+"} {Math.abs(B).toFixed(3)}y, {B.toFixed(3)}x + {C.toFixed(3)}y)</p><p>Minimum: (0, 0), f = 0. Curvatures {settings.curvature1} and {settings.curvature2}; valley rotation {settings.angle}°. Larger curvature means a steeper direction.</p></section></div>
-        <details className="adam-settings" open><summary>Experiment settings <span>Drag the ball or edit values; updates restart the run</span></summary><div className="adam-inputs">{([['alpha', 'Learning rate η', 0.001, 0.5, 0.001], ['x', 'Starting x', -3.5, 3.5, 0.05], ['y', 'Starting y', -3.5, 3.5, 0.05], ['curvature1', 'Curvature λ₁', 0.2, 12, 0.2], ['curvature2', 'Curvature λ₂', 0.2, 12, 0.2], ['angle', 'Valley rotation (°)', 0, 90, 1]] as [keyof Settings, string, number, number, number][]).map(([key, label, min, max, step]) => <label key={key}>{label}<input className="adam-number" aria-label={`${label} exact value`} type="number" min={min} max={max} step={step} value={Number(settings[key].toFixed(5))} onChange={e => { if (e.target.value === "") return; const n = Number(e.target.value); if (Number.isFinite(n)) change(key, Math.max(min, Math.min(max, n))); }} /><input type="range" min={min} max={max} step={step} value={settings[key]} onChange={e => change(key, Number(e.target.value))} /></label>)}</div><div className="adam-presets"><button onClick={() => { reset(); setSettings(INITIAL); }}>Restore defaults</button><button onClick={() => { reset(); setSettings(s => ({ ...s, curvature1: 1, curvature2: 1 })); }}>Round bowl</button><button onClick={() => { reset(); setSettings(s => ({ ...s, curvature1: 0.2, curvature2: 12 })); }}>Narrow valley</button></div></details>
-        <p className="adam-note">The ball is a visual analogy: its positions come from discrete gradient-descent updates, with smooth interpolation between them. Gravity, mass, and collision forces do not determine the trajectory. Surface height is scaled for readability; calculations use the exact function above. Arrows show direction with normalized length.</p>
+        <div className="adam-bottom-grid"><section className="adam-mini-card"><div className="adam-card-top"><h2>Loss over time</h2><span>f(θ)</span></div><LossChart run={run} index={index} /><p>The full run is muted; the inspected path is gold. Drag the iteration slider to scrub the ball through its evolution. Loss can increase between updates.</p></section><section className="adam-mini-card"><h2>The function</h2>
+          {settings.surface === "ripples" ? <><div className="adam-function">f = 0.15(x²+y²) + 0.7[sin²(1.8x)+sin²(1.8y)] + 0.25sin²(x+y)</div><p>gₓ = 0.3x + 1.26sin(3.6x) + 0.25sin(2(x+y))<br/>gᵧ = 0.3y + 1.26sin(3.6y) + 0.25sin(2(x+y))</p><p>Global minimum: (0,0), f = 0. Ripples create local minima, ridges, and saddles. The coupling term makes the path depend on both coordinates.</p></> : settings.surface === "rosenbrock" ? <><div className="adam-function">f = 0.02[(1−x)² + 100(y−x²)²]</div><p>gₓ = 0.02[2(x−1) − 400x(y−x²)]<br/>gᵧ = 4(y−x²)</p><p>Global minimum: (1,1), f = 0. A curved valley near y = x². The factor 0.02 rescales the standard Rosenbrock objective.</p></> : <><div className="adam-function">f(x,y) = ½({A.toFixed(3)}x² {B < 0 ? "−" : "+"} {Math.abs(2 * B).toFixed(3)}xy + {C.toFixed(3)}y²)</div><p>∇f = ({A.toFixed(3)}x {B < 0 ? "−" : "+"} {Math.abs(B).toFixed(3)}y, {B.toFixed(3)}x + {C.toFixed(3)}y)</p><p>Minimum: (0,0), f = 0. Curvatures {settings.curvature1} and {settings.curvature2}; rotation {settings.angle}°.</p></>}
+        </section></div>
+        <details className="adam-settings" open><summary>Experiment settings <span>Drag the ball or edit values; updates restart the run</span></summary><div className="adam-inputs">{numericControls.map(([key, label, min, max, step]) => <label key={key}>{label}<input className="adam-number" aria-label={`${label} exact value`} type="number" min={min} max={max} step={step} value={Number(settings[key].toFixed(5))} onChange={e => { if (e.target.value === "") return; const n = Number(e.target.value); if (Number.isFinite(n)) change(key, Math.max(min, Math.min(max, n))); }} /><input type="range" min={min} max={max} step={step} value={settings[key]} onChange={e => change(key, Number(e.target.value))} /></label>)}</div><div className="adam-presets"><button onClick={() => { reset(); setSettings(INITIAL); }}>Restore defaults</button><button onClick={() => placeBall([2.6,-1.8])}>Try another basin</button><button onClick={() => { reset(); setSettings(s => ({ ...s, surface: "bowl", alpha: 0.08, curvature1: 0.2, curvature2: 12 })); }}>Narrow valley</button></div></details>
+        <p className="adam-note">The ball is a visual analogy: its positions come from discrete gradient-descent updates, with smooth interpolation between them. Gravity, mass, and collision forces do not determine the trajectory. {settings.surface === "rosenbrock" ? "The 3D view uses logarithmic height compression to show the valley; calculations and the loss chart use the exact scaled Rosenbrock function." : "Surface height is scaled for readability; calculations use the exact function above."} Arrows show direction with normalized length.</p>
       </section>
       <aside className="adam-inspector"><div className="adam-card-top"><div><span className="adam-eyebrow">UNDER THE HOOD</span><h2>One step, unpacked.</h2></div><span className="adam-step-tag">t = {current.t}</span></div>
         <nav className="adam-stage-nav" aria-label="Gradient descent calculation stages">{stages.map((s, i) => <button key={s.name} aria-current={stage === i ? "step" : undefined} className={stage === i ? "active" : ""} onClick={() => { setPlaying(false); setStage(i); }}><span>{i + 1}</span>{s.name}</button>)}</nav>
         <div className="adam-explainer" aria-live="polite"><span className="adam-eyebrow">STAGE {stage + 1} / 3</span><h3>{stages[stage].name}</h3><p>{stages[stage].explanation}</p><div className="adam-formula">{stages[stage].formula}</div></div>
         <div className="adam-data-title"><h3>Every value</h3><button onClick={() => exportCSV(run, settings)}>Export CSV ↓</button></div>
         <div className="adam-table-wrap"><table className="adam-table"><thead><tr><th>Quantity</th><th>x</th><th>y</th></tr></thead><tbody>{rows.map(([label, vec, hint, rowStage]) => <tr key={label} className={rowStage === stage ? "highlight" : ""}><th title={hint}>{label}</th><td>{fmt(vec[0])}</td><td>{fmt(vec[1])}</td></tr>)}</tbody></table></div>
-        <div className="adam-bias"><span>Gradient descent diagnostics</span><div>Gradient norm = <b>{fmt(Math.hypot(...current.g))}</b></div><div>Step length = <b>{fmt(Math.hypot(...current.delta))}</b></div><div>f before → after = <b>{fmt(current.lossBefore)} → {fmt(current.lossAfter)}</b></div><div>Loss change = <b>{fmt(current.lossAfter - current.lossBefore)}</b></div><div>Stable learning-rate interval = <b>0 &lt; η &lt; {(2 / Math.max(settings.curvature1, settings.curvature2)).toFixed(4)}</b></div>{Math.max(...displayPosition.map(Math.abs)) > DOMAIN && <div>Ball is outside the displayed surface bounds (±3.5). Reduce η or restart.</div>}</div>
+        <div className="adam-bias"><span>Gradient descent diagnostics</span><div>Gradient norm = <b>{fmt(Math.hypot(...current.g))}</b></div><div>Step length = <b>{fmt(Math.hypot(...current.delta))}</b></div><div>f before → after = <b>{fmt(current.lossBefore)} → {fmt(current.lossAfter)}</b></div><div>Loss change = <b>{fmt(current.lossAfter - current.lossBefore)}</b></div>{settings.surface === "bowl" ? <div>Stable learning-rate interval = <b>0 &lt; η &lt; {(2 / Math.max(settings.curvature1, settings.curvature2)).toFixed(4)}</b></div> : <div>{current.lossAfter > current.lossBefore ? "This step increases loss. Try a smaller η." : "This step decreases or preserves loss. This does not guarantee a global minimum."}</div>}{Math.max(...displayPosition.map(Math.abs)) > DOMAIN && <div>Ball is outside the displayed surface bounds (±3.5). Reduce η or restart.</div>}</div>
         <p className="adam-note">Values are rounded here; the CSV retains full precision for every computed update.</p>
       </aside>
     </div>
@@ -254,6 +277,8 @@ export default function GradientDescentVisualization({ onClose }: { onClose?: ()
 }
 
 const CSS = `
+.gd-landscape-picker{margin-bottom:22px}.gd-landscape-picker label{font-size:13px;display:flex;align-items:center;gap:15px;flex-wrap:wrap}.gd-landscape-picker select{min-width:270px;max-width:100%}.gd-landscape-picker p{font-size:12px;color:var(--muted);line-height:1.8}.adam-function{overflow-wrap:anywhere}
+
 .gd-warning{border:1px solid #b69350;border-radius:8px;background:#342b1c;color:#efd2a0;padding:14px;font-size:12px;line-height:1.7;margin-bottom:18px}
 
 .adam-ball-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 0 0;font-size:11px;color:var(--muted)}.adam-ball-controls label{display:flex;align-items:center;gap:6px}.adam-ball-controls input{accent-color:var(--gold)}.adam-presets{display:flex;gap:8px;flex-wrap:wrap}.adam-inputs input.adam-number{display:inline-block;float:right;width:78px;margin:0;padding:3px 5px;border:1px solid var(--line);border-radius:4px;background:#0d1713;color:var(--gold);font:11px ui-monospace,monospace}.adam-inputs label{min-height:48px}
